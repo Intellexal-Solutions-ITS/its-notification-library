@@ -24,10 +24,10 @@ public class NotificationModule {
 
         try {
             FirebaseOptions firebaseOptions =new FirebaseOptions.Builder()
-                    .setApplicationId("1:590518950252:android:3d8a285c539311fdaf7b49")
+                    .setApplicationId("1:93074134066:android:2a4baddf6c4e6c4659982b")
                     .setApiKey(apiKey)
-                    .setProjectId("parent-app-eb9dd")
-                    .setGcmSenderId("590518950252")
+                    .setProjectId("push-notification-sdk-c8f7f")
+                    .setGcmSenderId("93074134066")
                     .build();
 
 
