@@ -39,7 +39,7 @@ public class Prefs {
         return sharedPreferences.getString("bearer_token", null);
     }
 
-    public String getRefreshToken() {
+    public  String getRefreshToken() {
         return sharedPreferences.getString("refresh_token", null);
     }
 

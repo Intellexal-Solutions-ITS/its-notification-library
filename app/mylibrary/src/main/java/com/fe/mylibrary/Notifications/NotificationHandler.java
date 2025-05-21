@@ -1,8 +1,7 @@
-package com.fe.mylibrary;
+package com.fe.mylibrary.Notifications;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -11,10 +10,13 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.fe.mylibrary.ApiClient;
+import com.fe.mylibrary.Model.NotificationModel;
+import com.fe.mylibrary.NetworkManager.NetworkManager;
+import com.fe.mylibrary.Prefs;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Random;
@@ -28,11 +30,41 @@ public class NotificationHandler extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
         Context context = getApplicationContext();
 
+
+
+
+        String title = "";
+        String message = "";
+        JSONObject payloadJson = new JSONObject();
         Log.d(TAG, "From Module: " + remoteMessage.getFrom());
 
         if (remoteMessage.getNotification() != null) {
-            String title = remoteMessage.getNotification().getTitle();
-            String message = remoteMessage.getNotification().getBody();
+
+
+
+
+
+
+            title = remoteMessage.getNotification().getTitle();
+            message = remoteMessage.getNotification().getBody();
+
+
+            if (!remoteMessage.getData().isEmpty()) {
+                try {
+                    for (String key : remoteMessage.getData().keySet()) {
+                        payloadJson.put(key, remoteMessage.getData().get(key));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            NotificationListener listener = NotificationHandlerRegistry.getListener();
+            if (listener != null) {
+                NotificationModel myNotification = new NotificationModel(title, message, payloadJson);
+                listener.onNotificationReceived(myNotification);
+            }
+
+
 
             Log.d(TAG, "Notification Title From Module: " + title);
             Log.d(TAG, "Notification Message From Module: " + message);
@@ -61,7 +93,8 @@ public class NotificationHandler extends FirebaseMessagingService {
             showNotification(title, message);
         }
 
-        updateNotificationStatus(context,"delivered");
+        NotificationUtil.updateNotificationStatus(context,"delivered");
+
     }
 
     private void showNotification(String title, String message) {
@@ -88,38 +121,37 @@ public class NotificationHandler extends FirebaseMessagingService {
     }
 
 
-    private static void updateNotificationStatus(Context ctx,String status) {
-
-
-        Prefs secureStorage = new Prefs(ctx);
-        String bearerToken = secureStorage.getBearerToken();
-        ApiClient apiClient = new ApiClient("https://statusapp.free.beeceptor.com/api/", bearerToken);
-
-
-
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("status", status);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        apiClient.post("updateNotificationStatus", jsonBody, new ApiClient.ApiCallback() {
-                    @Override
-                    public void onSuccess(String response) {
-                        // Handle success
-                        Log.d("API Response", "User registered: " + response);
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        // Handle failure
-                        Log.e("API Error", "Registration failed: " + e.getMessage());
-                    }
-                });
-
-    }
+//    private static void updateNotificationStatus(Context ctx, String status) {
+//        // Always refresh token first
+//        NetworkManager.refreshToken(ctx, success -> {
+//            if (success) {
+//                String bearerToken = new Prefs(ctx).getBearerToken();
+//
+//                ApiClient apiClient = new ApiClient("https://statusapp.free.beeceptor.com/api/", bearerToken);
+//                JSONObject jsonBody = new JSONObject();
+//
+//                try {
+//                    jsonBody.put("status", status);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//                apiClient.post("updateNotificationStatus", jsonBody, new ApiClient.ApiCallback() {
+//                    @Override
+//                    public void onSuccess(String response) {
+//                        Log.d("API Response", "Status updated: " + response);
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Exception e) {
+//                        Log.e("API Error", "Update failed: " + e.getMessage());
+//                    }
+//                });
+//            } else {
+//                Log.e("Auth", "Token refresh failed, cannot send status.");
+//            }
+//        });
+//    }
 
 
 

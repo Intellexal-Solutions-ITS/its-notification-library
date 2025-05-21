@@ -1,10 +1,11 @@
-package com.fe.mylibrary;
+package com.fe.mylibrary.Notifications;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
+import com.fe.mylibrary.ApiClient;
+import com.fe.mylibrary.NetworkManager.NetworkManager;
+import com.fe.mylibrary.Prefs;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -14,8 +15,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.concurrent.ExecutionException;
-
 public class NotificationModule {
 
     public static void initializeFirebase(Context context,String apiKey) {
@@ -24,10 +23,10 @@ public class NotificationModule {
 
         try {
             FirebaseOptions firebaseOptions =new FirebaseOptions.Builder()
-                    .setApplicationId("1:93074134066:android:2a4baddf6c4e6c4659982b")
+                    .setApplicationId("1:590518950252:android:3d8a285c539311fdaf7b49")
                     .setApiKey(apiKey)
-                    .setProjectId("push-notification-sdk-c8f7f")
-                    .setGcmSenderId("93074134066")
+                    .setProjectId("parent-app-eb9dd")
+                    .setGcmSenderId("590518950252")
                     .build();
 
 
@@ -100,7 +99,7 @@ public class NotificationModule {
             jsonBody.put("app_id", app_id);
             jsonBody.put("device_token", device_token);
             jsonBody.put("fcm_auth_token", auth_token);
-            jsonBody.put("secrect_key", secret_key);
+            jsonBody.put("secret_key", secret_key);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -141,51 +140,51 @@ public class NotificationModule {
 
 
 
-    public static void registerUser(Context ctx,String userPhone, String userName, String userEmail) {
+    public static void registerUser(Context ctx, String userPhone, String userName, String userEmail) {
+        // Always refresh token first
+        NetworkManager.refreshToken(ctx, success -> {
+            if (success) {
+                String bearerToken = new Prefs(ctx).getBearerToken();
+                ApiClient apiClient = new ApiClient("https://caab744a8f5b7df61638.free.beeceptor.com/api/", bearerToken);
 
+                JSONObject jsonBody = new JSONObject();
 
-        Prefs secureStorage = new Prefs(ctx);
-        String bearerToken = secureStorage.getBearerToken();
-        ApiClient apiClient = new ApiClient("https://caab744a8f5b7df61638.free.beeceptor.com/api/", bearerToken);
-
-        // Create a JSON object to hold the parameters
-        JSONObject jsonBody = new JSONObject();
-
-        try {
-            // Add the values to the JSON object if they are not null
-            if (userPhone != null && !userPhone.isEmpty()) {
-                jsonBody.put("phone", userPhone);
-            }
-            if (userName != null && !userName.isEmpty()) {
-                jsonBody.put("username", userName);
-            }
-            if (userEmail != null && !userEmail.isEmpty()) {
-                jsonBody.put("email", userEmail);
-            }
-
-            // Perform the API call if any of the parameters exist
-            if (jsonBody.length() > 0) {
-                apiClient.post("register", jsonBody, new ApiClient.ApiCallback() {
-                    @Override
-                    public void onSuccess(String response) {
-                        // Handle success
-                        Log.d("API Response", "User registered: " + response);
+                try {
+                    if (userPhone != null && !userPhone.isEmpty()) {
+                        jsonBody.put("phone", userPhone);
+                    }
+                    if (userName != null && !userName.isEmpty()) {
+                        jsonBody.put("username", userName);
+                    }
+                    if (userEmail != null && !userEmail.isEmpty()) {
+                        jsonBody.put("email", userEmail);
                     }
 
-                    @Override
-                    public void onFailure(Exception e) {
-                        // Handle failure
-                        Log.e("API Error", "Registration failed: " + e.getMessage());
+                    if (jsonBody.length() > 0) {
+                        apiClient.post("register", jsonBody, new ApiClient.ApiCallback() {
+                            @Override
+                            public void onSuccess(String response) {
+                                Log.d("API Response", "User registered: " + response);
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                Log.e("API Error", "Registration failed: " + e.getMessage());
+                            }
+                        });
+                    } else {
+                        Log.e("API Error", "No valid data provided for registration.");
                     }
-                });
+
+                } catch (Exception e) {
+                    Log.e("API Error", "Failed to build JSON body: " + e.getMessage());
+                }
             } else {
-                Log.e("API Error", "No valid data provided for registration.");
+                Log.e("Auth", "Token refresh failed, cannot register user.");
             }
-
-        } catch (Exception e) {
-            Log.e("API Error", "Failed to build JSON body: " + e.getMessage());
-        }
+        });
     }
+
 
 
 }

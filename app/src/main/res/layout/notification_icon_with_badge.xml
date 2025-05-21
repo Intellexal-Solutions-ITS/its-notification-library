@@ -1,0 +1,32 @@
+<!-- res/layout/notification_icon_with_badge.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notification_container"
+    android:layout_width="wrap_content"
+    android:orientation="horizontal"
+    android:layout_gravity="end"
+    android:tag="include"
+    android:layout_height="wrap_content">
+
+    <!-- Notification Icon -->
+    <ImageView
+        android:id="@+id/notification_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/notify"
+    android:contentDescription="Notifications"
+    android:padding="8dp"
+    android:layout_gravity="center" />
+
+    <!-- Badge Count -->
+    <TextView
+        android:id="@+id/badge_count"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="end|top"
+        android:background="@drawable/badge_background"
+        android:text="0"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:visibility="gone"
+        android:textSize="12sp" />
+</RelativeLayout>
