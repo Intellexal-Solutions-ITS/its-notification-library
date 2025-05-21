@@ -23,10 +23,10 @@ public class NotificationModule {
 
         try {
             FirebaseOptions firebaseOptions =new FirebaseOptions.Builder()
-                    .setApplicationId("1:590518950252:android:3d8a285c539311fdaf7b49")
+                    .setApplicationId("1:992052778259:android:490847258e7d584274f6e6")
                     .setApiKey(apiKey)
-                    .setProjectId("parent-app-eb9dd")
-                    .setGcmSenderId("590518950252")
+                    .setProjectId("itsomni-notification")
+                    .setGcmSenderId("992052778259")
                     .build();
 
 
