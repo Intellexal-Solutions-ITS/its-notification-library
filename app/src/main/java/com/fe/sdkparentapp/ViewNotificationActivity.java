@@ -8,9 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.fe.mylibrary.Notifications.NotificationHandler;
-import com.fe.mylibrary.Notifications.NotificationModule;
-import com.fe.mylibrary.Notifications.NotificationUtil;
+import com.its.notificationlibrary.Notifications.NotificationUtil;
 
 public class ViewNotificationActivity extends AppCompatActivity {
 

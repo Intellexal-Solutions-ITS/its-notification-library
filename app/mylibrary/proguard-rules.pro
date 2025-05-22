@@ -11,7 +11,7 @@
 ######################################
 # KEEP YOUR LIBRARY'S PUBLIC API
 ######################################
--keep class com.fe.mylibrary.** {
+-keep class com.its.notificationlibrary.** {
     public *;
 }
 
@@ -19,7 +19,7 @@
 # OBFUSCATE INTERNAL CLASSES/METHODS
 ######################################
 # Keep only public interfaces; everything else can be obfuscated
--keep interface com.fe.mylibrary.** { *; }
+-keep interface com.its.notificationlibrary.** { *; }
 
 ######################################
 # FIREBASE AUTH / MESSAGING / FIRESTORE
@@ -62,7 +62,7 @@
 ######################################
 # GSON or JSON (if applicable)
 ######################################
--keep class com.fe.mylibrary.model.** {
+-keep class com.its.notificationlibrary.model.** {
     <fields>;
 }
 -keepattributes *Annotation*

@@ -1,11 +1,11 @@
-package com.fe.mylibrary.Notifications;
+package com.its.notificationlibrary.Notifications;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.fe.mylibrary.ApiClient;
-import com.fe.mylibrary.NetworkManager.NetworkManager;
-import com.fe.mylibrary.Prefs;
+import com.its.notificationlibrary.ApiClient;
+import com.its.notificationlibrary.NetworkManager.NetworkManager;
+import com.its.notificationlibrary.Prefs;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,7 +17,7 @@ import org.json.JSONObject;
 
 public class NotificationModule {
 
-    public static void initializeFirebase(Context context,String apiKey) {
+    public static void initializeFirebase(Context context,String apiKey, String secretKey) {
 
 
 
@@ -32,7 +32,7 @@ public class NotificationModule {
 
                     try {
                         FirebaseApp.initializeApp(context, firebaseOptions);
-                        getFcmToken(context);
+                        getFcmToken(context, secretKey);
                     }
                     catch (Exception ex){
                         Log.e(TAG, "initializeFirebase: "+ex.getMessage() );
@@ -49,7 +49,7 @@ public class NotificationModule {
 
     private static final String TAG = "LibraryTAG";
 
-    public static void getFcmToken(Context ctx) {
+    public static void getFcmToken(Context ctx, String secretKey) {
         FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(result ->{
 
             if (result.isSuccessful()) {
@@ -75,7 +75,7 @@ public class NotificationModule {
                                 String packageName = ctx.getPackageName();
                                 Log.d(TAG, "Package Name: " + packageName);
 
-                                initSDKCall(ctx,token,userId,packageName,"hello");
+                                initSDKCall(ctx,token,userId,packageName,secretKey);
                                 // You can store this token or pass it to your library's consumer
                             });
                     // Log or use the user info as needed

@@ -21,12 +21,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.room.Room;
 
-import com.fe.mylibrary.Notifications.NotificationHandlerRegistry;
-import com.fe.mylibrary.Notifications.NotificationListener;
-import com.fe.mylibrary.Model.NotificationModel;
-import com.fe.mylibrary.Notifications.NotificationModule;
-
-import java.util.Date;
+import com.its.notificationlibrary.Notifications.NotificationHandlerRegistry;
+import com.its.notificationlibrary.Notifications.NotificationListener;
+import com.its.notificationlibrary.Model.NotificationModel;
+import com.its.notificationlibrary.Notifications.NotificationModule;
 
 public class MainActivity extends AppCompatActivity {
     TextView badgeTextView;
@@ -48,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        NotificationModule.initializeFirebase(this,"AIzaSyB88GudGRVpyz3rTQy8c5xkzJu3GmN1w10");
+        NotificationModule.initializeFirebase(this,"AIzaSyB88GudGRVpyz3rTQy8c5xkzJu3GmN1w10", "secret_key");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 badgeReceiver, new IntentFilter("com.fe.sdkparentapp")

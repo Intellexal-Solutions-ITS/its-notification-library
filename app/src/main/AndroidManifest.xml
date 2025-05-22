@@ -31,7 +31,7 @@
         </activity>
 
         <service
-            android:name="com.fe.mylibrary.Notifications.NotificationHandler"
+            android:name="com.its.notificationlibrary.Notifications.NotificationHandler"
             android:exported="false"
             android:permission="notification">
             <intent-filter>

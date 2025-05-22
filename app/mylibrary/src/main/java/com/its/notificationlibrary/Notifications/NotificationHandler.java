@@ -1,4 +1,4 @@
-package com.fe.mylibrary.Notifications;
+package com.its.notificationlibrary.Notifications;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,10 +10,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.fe.mylibrary.ApiClient;
-import com.fe.mylibrary.Model.NotificationModel;
-import com.fe.mylibrary.NetworkManager.NetworkManager;
-import com.fe.mylibrary.Prefs;
+import com.its.notificationlibrary.Model.NotificationModel;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -70,7 +67,7 @@ public class NotificationHandler extends FirebaseMessagingService {
             Log.d(TAG, "Notification Message From Module: " + message);
 
             // Send broadcast to app
-            Intent intent = new Intent("com.fe.mylibrary.NOTIFICATION_RECEIVED");
+            Intent intent = new Intent("com.its.notificationlibrary.NOTIFICATION_RECEIVED");
             intent.putExtra("title", title);
             intent.putExtra("body", message);
             sendBroadcast(intent);

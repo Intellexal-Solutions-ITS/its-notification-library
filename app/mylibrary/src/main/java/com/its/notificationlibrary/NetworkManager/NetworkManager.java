@@ -1,10 +1,10 @@
-package com.fe.mylibrary.NetworkManager;
+package com.its.notificationlibrary.NetworkManager;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.fe.mylibrary.ApiClient;
-import com.fe.mylibrary.Prefs;
+import com.its.notificationlibrary.ApiClient;
+import com.its.notificationlibrary.Prefs;
 
 import org.json.JSONObject;
 

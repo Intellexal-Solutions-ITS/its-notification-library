@@ -1,4 +1,4 @@
-package com.fe.mylibrary;
+package com.its.notificationlibrary;
 
 import android.content.Context;
 import android.content.SharedPreferences;

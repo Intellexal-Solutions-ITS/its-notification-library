@@ -1,4 +1,4 @@
-package com.fe.mylibrary.Notifications;
+package com.its.notificationlibrary.Notifications;
 
 public class NotificationHandlerRegistry {
     private static NotificationListener listener;
