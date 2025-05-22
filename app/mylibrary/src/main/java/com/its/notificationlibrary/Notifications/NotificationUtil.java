@@ -1,11 +1,11 @@
-package com.fe.mylibrary.Notifications;
+package com.its.notificationlibrary.Notifications;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.fe.mylibrary.ApiClient;
-import com.fe.mylibrary.NetworkManager.NetworkManager;
-import com.fe.mylibrary.Prefs;
+import com.its.notificationlibrary.ApiClient;
+import com.its.notificationlibrary.NetworkManager.NetworkManager;
+import com.its.notificationlibrary.Prefs;
 
 import org.json.JSONObject;
 

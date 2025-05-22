@@ -1,4 +1,4 @@
-package com.fe.mylibrary;
+package com.its.notificationlibrary;
 
 import android.util.Log;
 
@@ -7,7 +7,6 @@ import androidx.annotation.NonNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;

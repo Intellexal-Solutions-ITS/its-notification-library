@@ -1,4 +1,4 @@
-package com.fe.mylibrary.Model;
+package com.its.notificationlibrary.Model;
 
 import org.json.JSONObject;
 
