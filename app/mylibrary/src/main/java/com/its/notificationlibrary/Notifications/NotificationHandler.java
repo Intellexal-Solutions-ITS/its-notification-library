@@ -1,5 +1,6 @@
 package com.its.notificationlibrary.Notifications;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -33,7 +34,7 @@ public class NotificationHandler extends FirebaseMessagingService {
         String title = "";
         String message = "";
         JSONObject payloadJson = new JSONObject();
-        Log.d(TAG, "From Module: " + remoteMessage.getFrom());
+        Log.d(TAG, "From Module: " + remoteMessage.getData());
 
         if (remoteMessage.getNotification() != null) {
 
@@ -90,10 +91,11 @@ public class NotificationHandler extends FirebaseMessagingService {
             showNotification(title, message);
         }
 
-        NotificationUtil.updateNotificationStatus(context,"delivered");
+        NotificationUtil.updateNotificationStatus(context,"delivered", remoteMessage.getData().get("client_id"), remoteMessage.getData().get("transaction_id"));
 
     }
 
+    @SuppressLint("MissingPermission")
     private void showNotification(String title, String message) {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
@@ -117,38 +119,6 @@ public class NotificationHandler extends FirebaseMessagingService {
         // Send token to your backend if needed
     }
 
-
-//    private static void updateNotificationStatus(Context ctx, String status) {
-//        // Always refresh token first
-//        NetworkManager.refreshToken(ctx, success -> {
-//            if (success) {
-//                String bearerToken = new Prefs(ctx).getBearerToken();
-//
-//                ApiClient apiClient = new ApiClient("https://statusapp.free.beeceptor.com/api/", bearerToken);
-//                JSONObject jsonBody = new JSONObject();
-//
-//                try {
-//                    jsonBody.put("status", status);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//
-//                apiClient.post("updateNotificationStatus", jsonBody, new ApiClient.ApiCallback() {
-//                    @Override
-//                    public void onSuccess(String response) {
-//                        Log.d("API Response", "Status updated: " + response);
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Exception e) {
-//                        Log.e("API Error", "Update failed: " + e.getMessage());
-//                    }
-//                });
-//            } else {
-//                Log.e("Auth", "Token refresh failed, cannot send status.");
-//            }
-//        });
-//    }
 
 
 

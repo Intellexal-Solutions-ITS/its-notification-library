@@ -35,6 +35,19 @@ public class Prefs {
                 .apply();
     }
 
+
+
+    public void saveFingerPrint(String fingerPrint,Context context) {
+        String fingerprint = new Prefs(context).getFingerprint();
+        if(fingerprint == null || fingerprint.isEmpty()) {
+            sharedPreferences.edit()
+                    .putString("device_fingerprint", fingerPrint)
+                    .apply();
+        }
+
+    }
+
+
     public String getBearerToken() {
         return sharedPreferences.getString("bearer_token", null);
     }
@@ -42,6 +55,11 @@ public class Prefs {
     public  String getRefreshToken() {
         return sharedPreferences.getString("refresh_token", null);
     }
+
+    public String getFingerprint() {
+        return sharedPreferences.getString("device_fingerprint", null);
+    }
+
 
     public void clearTokens() {
         sharedPreferences.edit().clear().apply();
