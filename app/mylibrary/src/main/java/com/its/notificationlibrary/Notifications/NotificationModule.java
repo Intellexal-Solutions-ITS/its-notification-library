@@ -3,7 +3,8 @@ package com.its.notificationlibrary.Notifications;
 import android.content.Context;
 import android.util.Log;
 
-import com.its.notificationlibrary.ApiClient;
+import com.its.notificationlibrary.ApiClient.ApiClient;
+import com.its.notificationlibrary.ApiClient.ApiConstants;
 import com.its.notificationlibrary.NetworkManager.NetworkManager;
 import com.its.notificationlibrary.Prefs;
 import com.google.firebase.FirebaseApp;
@@ -15,9 +16,11 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.UUID;
+
 public class NotificationModule {
 
-    public static void initializeFirebase(Context context,String apiKey, String secretKey) {
+    public static void initializeFirebase(Context context,String apiKey, String client_id,String api_key) {
 
 
 
@@ -32,7 +35,9 @@ public class NotificationModule {
 
                     try {
                         FirebaseApp.initializeApp(context, firebaseOptions);
-                        getFcmToken(context, secretKey);
+                        String fingerprint = UUID.randomUUID().toString();
+                        new Prefs(context).saveFingerPrint(fingerprint, context);
+                        getFcmToken(context, client_id, api_key);
                     }
                     catch (Exception ex){
                         Log.e(TAG, "initializeFirebase: "+ex.getMessage() );
@@ -49,7 +54,7 @@ public class NotificationModule {
 
     private static final String TAG = "LibraryTAG";
 
-    public static void getFcmToken(Context ctx, String secretKey) {
+    public static void getFcmToken(Context ctx, String client_id,String api_key) {
         FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(result ->{
 
             if (result.isSuccessful()) {
@@ -75,7 +80,7 @@ public class NotificationModule {
                                 String packageName = ctx.getPackageName();
                                 Log.d(TAG, "Package Name: " + packageName);
 
-                                initSDKCall(ctx,token,userId,packageName,secretKey);
+                                initSDKCall(ctx,token,packageName,client_id,api_key);
                                 // You can store this token or pass it to your library's consumer
                             });
                     // Log or use the user info as needed
@@ -91,20 +96,24 @@ public class NotificationModule {
     }
 
 
-    private static void initSDKCall(Context ctx,String device_token, String auth_token, String app_id, String secret_key){
-        ApiClient apiClient = new ApiClient("https://ca065bfd45a463302f9c.free.beeceptor.com/api/", "");
+    private static void initSDKCall(Context ctx,String device_token, String packageName, String client_id, String api_key){
+        String fingerprint = new Prefs(ctx).getFingerprint();
+
+        ApiClient apiClient = new ApiClient( null,fingerprint);
 
         JSONObject jsonBody = new JSONObject();
         try {
-            jsonBody.put("app_id", app_id);
+            jsonBody.put("app_id", packageName);
             jsonBody.put("device_token", device_token);
-            jsonBody.put("fcm_auth_token", auth_token);
-            jsonBody.put("secret_key", secret_key);
+            jsonBody.put("fcm_token", "1234");
+            jsonBody.put("client_id", client_id);
+            jsonBody.put("api_key", api_key);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Log.d("Request Body", String.valueOf(jsonBody));
 
-        apiClient.post("initSDK", jsonBody, new ApiClient.ApiCallback() {
+        apiClient.post(ApiConstants.issueToken, jsonBody, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d("API Response", response);
@@ -112,16 +121,12 @@ public class NotificationModule {
                     JSONObject  jsonResponse = new JSONObject(response);
                     String status = jsonResponse.optString("status", "");
 
-
-                    if ("success".equalsIgnoreCase(status)) {
                         Log.d("API Response", "Success: " + response);
-                        String bearer = jsonResponse.optString("bearer_token", "");
+                        String bearer = jsonResponse.optString("access_token", "");
                         String refresh = jsonResponse.optString("refresh_token", "");
                         Prefs secureStorage = new Prefs(ctx);
                         secureStorage.saveToken(bearer, refresh);
-                    } else {
-                        Log.e("API Response", "Status is not success");
-                    }
+
 
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -145,23 +150,28 @@ public class NotificationModule {
         NetworkManager.refreshToken(ctx, success -> {
             if (success) {
                 String bearerToken = new Prefs(ctx).getBearerToken();
-                ApiClient apiClient = new ApiClient("https://caab744a8f5b7df61638.free.beeceptor.com/api/", bearerToken);
+                String fingerprint = new Prefs(ctx).getFingerprint();
+
+                ApiClient apiClient = new ApiClient( bearerToken,fingerprint);
 
                 JSONObject jsonBody = new JSONObject();
 
                 try {
-                    if (userPhone != null && !userPhone.isEmpty()) {
-                        jsonBody.put("phone", userPhone);
-                    }
-                    if (userName != null && !userName.isEmpty()) {
-                        jsonBody.put("username", userName);
-                    }
-                    if (userEmail != null && !userEmail.isEmpty()) {
-                        jsonBody.put("email", userEmail);
-                    }
+//                    if (userPhone != null && !userPhone.isEmpty()) {
+//                        jsonBody.put("customer_name", userName);
+                        jsonBody.put("customer_name", "sumair yaseen");
+//                    }
+//                    if (userName != null && !userName.isEmpty()) {
+//                        jsonBody.put("email", userEmail);
+                        jsonBody.put("email", "sumairbhutto09@gmail.com");
+//                    }
+//                    if (userEmail != null && !userEmail.isEmpty()) {
+                        jsonBody.put("phone_number", userPhone);
+//                        jsonBody.put("phone_number", "03059423919");
+//                    }
 
                     if (jsonBody.length() > 0) {
-                        apiClient.post("register", jsonBody, new ApiClient.ApiCallback() {
+                        apiClient.post(ApiConstants.deviceRegister, jsonBody, new ApiClient.ApiCallback() {
                             @Override
                             public void onSuccess(String response) {
                                 Log.d("API Response", "User registered: " + response);

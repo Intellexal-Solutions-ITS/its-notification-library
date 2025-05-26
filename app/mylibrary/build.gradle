@@ -2,12 +2,12 @@ plugins {
     id 'maven-publish'
 
     alias(libs.plugins.android.library)
-//    alias(libs.plugins.google.services)
+    alias(libs.plugins.google.services)
 }
 
 android {
     namespace 'com.its.notificationlibrary'
-    compileSdk 34
+    compileSdk 35
 
 
     defaultConfig {

@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +17,8 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -33,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     Button btnRegister;
 
     RelativeLayout notification_container;
+
+    private static final int REQUEST_NOTIFICATION_PERMISSION = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
-        NotificationModule.initializeFirebase(this,"REDACTED_FIREBASE_WEB_API_KEY", "secret_key");
+        requestNotificationPermission();
+        NotificationModule.initializeFirebase(this,"REDACTED_FIREBASE_WEB_API_KEY", "REDACTED_CLIENT_ID", "REDACTED_API_KEY");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 badgeReceiver, new IntentFilter("com.fe.sdkparentapp")
@@ -61,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this,NotificationActivity.class));
-                Toast.makeText(getApplicationContext(),"Tapped",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(),"Tapped",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -133,5 +140,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(badgeReceiver);
         super.onDestroy();
+    }
+
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        REQUEST_NOTIFICATION_PERMISSION);
+            }
+        }
     }
 }

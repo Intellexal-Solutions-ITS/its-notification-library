@@ -1,4 +1,4 @@
-package com.its.notificationlibrary;
+package com.its.notificationlibrary.ApiClient;
 
 import android.util.Log;
 
@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -24,11 +25,13 @@ public class ApiClient {
     private final OkHttpClient client;
     private final String baseUrl;
     private final String authToken;  // Optional - use for secure APIs
+    private final String fingerPrint;  // Optional - use for secure APIs
 
-    public ApiClient(String baseUrl, String authToken) {
+    public ApiClient( String authToken,String fingerPrint) {
         this.client = new OkHttpClient();
-        this.baseUrl = baseUrl;
+        this.baseUrl = ApiConstants.baseUrl;
         this.authToken = authToken;
+        this.fingerPrint = fingerPrint;
     }
 
     public interface ApiCallback {
@@ -43,10 +46,17 @@ public class ApiClient {
                 .url(baseUrl + endpoint)
                 .post(requestBody)
                 .addHeader("Content-Type", "application/json");
+//                .addHeader("X-Device-Fingerprint", fingerprint);
 
         if (authToken != null && !authToken.isEmpty()) {
             builder.addHeader("Authorization", "Bearer " + authToken);
         }
+        if (fingerPrint != null && !fingerPrint.isEmpty()) {
+            builder.addHeader("X-Device-Fingerprint", fingerPrint);
+        }
+
+        Log.d("API HEADER", String.valueOf(builder.build()));
+
 
         Request request = builder.build();
 
