@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/home_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bgColor"
+    android:padding="16dp">
+
+    <!-- 🔝 Top Bar with Hello + Bell -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp"
+        android:layout_marginTop="10dp">
+
+        <!-- Hello Text -->
+        <TextView
+            android:id="@+id/textPhone"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Hello 0300..."
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black" />
+
+        <!--Logout Icon -->
+        <ImageView
+            android:id="@+id/logout_icon"
+            android:layout_width="55dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_logout"
+            android:padding="8dp"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:tint="@color/black" />
+
+        <!-- Bell Icon -->
+        <include
+            layout="@layout/notification_icon_with_badge"
+            android:id="@+id/notification_container"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- 📊 Dashboard Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/white"
+        android:padding="20dp"
+        android:elevation="4dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginHorizontal="4dp"
+        android:backgroundTint="@color/white"
+        android:clipToPadding="false"
+        android:layout_gravity="center"
+        android:layout_weight="1">
+
+        <!-- Example Dashboard Content -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dashboard Content Here"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:layout_gravity="center" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,22 +1,28 @@
 package com.its.notificationlibrary.Notifications;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.its.notificationlibrary.ApiClient.ApiClient;
 import com.its.notificationlibrary.ApiClient.ApiConstants;
 import com.its.notificationlibrary.NetworkManager.NetworkManager;
-import com.its.notificationlibrary.Prefs;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.its.notificationlibrary.Storage.Prefs;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
+
+import okhttp3.HttpUrl;
 
 public class NotificationModule {
 
@@ -36,7 +42,7 @@ public class NotificationModule {
                     try {
                         FirebaseApp.initializeApp(context, firebaseOptions);
                         String fingerprint = UUID.randomUUID().toString();
-                        new Prefs(context).saveFingerPrint(fingerprint, context);
+                        new Prefs(context).saveFingerPrint(fingerprint);
                         getFcmToken(context, client_id, api_key);
                     }
                     catch (Exception ex){
@@ -64,9 +70,6 @@ public class NotificationModule {
                 // Retrieve the current user
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                 if (user != null) {
-                    // Get the unique identifier of the user
-                    String userId = user.getUid(); // Unique identifier for the user
-
                     FirebaseMessaging.getInstance().getToken()
                             .addOnCompleteListener(task -> {
                                 if (!task.isSuccessful()) {
@@ -76,16 +79,10 @@ public class NotificationModule {
 
                                 // Get the FCM token
                                 String token = task.getResult();
-                                Log.d(TAG, "FCM Token: " + token);
                                 String packageName = ctx.getPackageName();
-                                Log.d(TAG, "Package Name: " + packageName);
 
                                 initSDKCall(ctx,token,packageName,client_id,api_key);
-                                // You can store this token or pass it to your library's consumer
                             });
-                    // Log or use the user info as needed
-                    Log.d(TAG, "User ID: " + userId);
-
                 }
             } else {
                 // If sign-in fails, log the error
@@ -97,7 +94,8 @@ public class NotificationModule {
 
 
     private static void initSDKCall(Context ctx,String device_token, String packageName, String client_id, String api_key){
-        String fingerprint = new Prefs(ctx).getFingerprint();
+        Context appContext = ctx.getApplicationContext();
+        String fingerprint = new Prefs(appContext).getFingerprint();
 
         ApiClient apiClient = new ApiClient( null,fingerprint);
 
@@ -105,27 +103,30 @@ public class NotificationModule {
         try {
             jsonBody.put("app_id", packageName);
             jsonBody.put("device_token", device_token);
-            jsonBody.put("fcm_token", "1234");
+            jsonBody.put("fcm_token", device_token);
             jsonBody.put("client_id", client_id);
             jsonBody.put("api_key", api_key);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.d("Request Body", String.valueOf(jsonBody));
 
         apiClient.post(ApiConstants.issueToken, jsonBody, new ApiClient.ApiCallback() {
             @Override
             public void onSuccess(String response) {
-                Log.d("API Response", response);
                 try {
                     JSONObject  jsonResponse = new JSONObject(response);
-                    String status = jsonResponse.optString("status", "");
 
-                        Log.d("API Response", "Success: " + response);
+                        Log.d("NotificationModule", "Device registration succeeded");
                         String bearer = jsonResponse.optString("access_token", "");
                         String refresh = jsonResponse.optString("refresh_token", "");
-                        Prefs secureStorage = new Prefs(ctx);
-                        secureStorage.saveToken(bearer, refresh);
+                        int expire_in = jsonResponse.getInt("expires_in");
+                    Date now = new Date();
+                    @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String tokenDate = formatter.format(now);
+
+
+                    Prefs secureStorage = new Prefs(ctx);
+                        secureStorage.saveToken(bearer, refresh,expire_in,tokenDate);
 
 
                 } catch (JSONException e) {
@@ -157,24 +158,15 @@ public class NotificationModule {
                 JSONObject jsonBody = new JSONObject();
 
                 try {
-//                    if (userPhone != null && !userPhone.isEmpty()) {
-//                        jsonBody.put("customer_name", userName);
-                        jsonBody.put("customer_name", "sumair yaseen");
-//                    }
-//                    if (userName != null && !userName.isEmpty()) {
-//                        jsonBody.put("email", userEmail);
-                        jsonBody.put("email", "sumairbhutto09@gmail.com");
-//                    }
-//                    if (userEmail != null && !userEmail.isEmpty()) {
-                        jsonBody.put("phone_number", userPhone);
-//                        jsonBody.put("phone_number", "03059423919");
-//                    }
+                    jsonBody.put("customer_name", userName);
+                    jsonBody.put("email", userEmail);
+                    jsonBody.put("phone_number", userPhone);
 
                     if (jsonBody.length() > 0) {
                         apiClient.post(ApiConstants.deviceRegister, jsonBody, new ApiClient.ApiCallback() {
                             @Override
                             public void onSuccess(String response) {
-                                Log.d("API Response", "User registered: " + response);
+                                Log.d("NotificationModule", "User registered successfully");
                             }
 
                             @Override
@@ -196,5 +188,55 @@ public class NotificationModule {
     }
 
 
+    private static NotificationClickListener clickListener;
+
+    public static void setNotificationClickListener(NotificationClickListener listener) {
+        clickListener = listener;
+    }
+    public static void handleNotificationIntent(Intent intent) {
+        if (intent != null && intent.hasExtra("id") && clickListener != null) {
+            String id = intent.getStringExtra("id");
+            clickListener.onNotificationClicked(id);
+        }
+    }
+
+    public interface NotificationCallBack {
+        void onSuccess(String responseBody); // or pass parsed data if needed
+        void onError(String errorMessage);
+    }
+
+    public static void getNotifications(Context ctx, int page, int pageSize, NotificationCallBack callback) {
+        NetworkManager.refreshToken(ctx, success -> {
+            if (success) {
+                String bearerToken = new Prefs(ctx).getBearerToken();
+                String fingerprint = new Prefs(ctx).getFingerprint();
+
+                ApiClient apiClient = new ApiClient(bearerToken, fingerprint);
+
+                HttpUrl url = HttpUrl.parse(ApiConstants.notificationList)
+                        .newBuilder()
+                        .addQueryParameter("channel", "1")
+                        .addQueryParameter("page", String.valueOf(page))
+                        .addQueryParameter("page_size", String.valueOf(pageSize))
+                        .build();
+
+                apiClient.get(url, new ApiClient.ApiCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                        callback.onSuccess(response);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e("TransactionAPI", "Failed to fetch notifications: " + e.getMessage());
+                        callback.onError(e.getMessage());
+                    }
+                });
+            } else {
+                Log.e("TransactionAPI", "Token refresh failed");
+                callback.onError("Token refresh failed");
+            }
+        });
+    }
 
 }

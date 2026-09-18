@@ -7,5 +7,7 @@ public class ApiConstants {
     public static String  refreshToken = "auth/refresh-token";
     public static String  deviceRegister = "device/register";
     public static String  updateNotificationStatus = "dlr/fcm";
+    public static String  notificationList = baseUrl +
+            "mobile/transactions";
 
 }
