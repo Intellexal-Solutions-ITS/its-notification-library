@@ -63,7 +63,7 @@ android.libraryVariants.all {
                 // Set coordinates for your library
                 groupId = 'com.its.notification-library'
                 artifactId = 'its-notification-library'
-                version = '1.0.5'
+                version = '1.0.6'
 
                 afterEvaluate {
                     from components.release
