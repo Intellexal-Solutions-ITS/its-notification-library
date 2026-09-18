@@ -58,7 +58,11 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        NotificationModule.initializeFirebase(this,"AIzaSyD__p1BKi0hDE4B6dPsaF1X0bHHtBK2ujs", "8C4AB43E-1599-43E6-8C6A-B086E21E97F8".toLowerCase(), "d1f8c1e2-4b7a-4a95-9e2f-0b75f84e6d5a");
+        NotificationModule.initializeFirebase(
+                this,
+                "AIzaSyD__p1BKi0hDE4B6dPsaF1X0bHHtBK2ujs",
+                "8C4AB43E-1599-43E6-8C6A-B086E21E97F8".toLowerCase(),
+                "d1f8c1e2-4b7a-4a95-9e2f-0b75f84e6d5a");
         requestNotificationPermission();
         progressInsideButton = findViewById(R.id.progressInsideButton);
         edtPhone = findViewById(R.id.edtPhone);
