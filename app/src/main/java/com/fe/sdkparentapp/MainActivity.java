@@ -58,7 +58,11 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        NotificationModule.initializeFirebase(this,"REDACTED_FIREBASE_WEB_API_KEY", "REDACTED_CLIENT_ID".toLowerCase(), "REDACTED_API_KEY");
+        NotificationModule.initializeFirebase(
+                this,
+                "REDACTED_FIREBASE_WEB_API_KEY",
+                "REDACTED_CLIENT_ID".toLowerCase(),
+                "REDACTED_API_KEY");
         requestNotificationPermission();
         progressInsideButton = findViewById(R.id.progressInsideButton);
         edtPhone = findViewById(R.id.edtPhone);

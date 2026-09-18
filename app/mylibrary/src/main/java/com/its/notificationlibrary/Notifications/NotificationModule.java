@@ -10,8 +10,6 @@ import com.its.notificationlibrary.ApiClient.ApiConstants;
 import com.its.notificationlibrary.NetworkManager.NetworkManager;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.its.notificationlibrary.Storage.Prefs;
 
@@ -26,70 +24,48 @@ import okhttp3.HttpUrl;
 
 public class NotificationModule {
 
-    public static void initializeFirebase(Context context,String apiKey, String client_id,String api_key) {
-
-
-
+    // FirebaseMessaging has no secondary-app support on Android, so FCM tokens
+    // are always scoped to whichever project owns the default FirebaseApp. If
+    // the host app already has its own default FirebaseApp (e.g. via its own
+    // google-services.json), we must use that one — creating a second default
+    // app throws and the token would be scoped to the wrong project anyway. We
+    // only fall back to creating our own default app for a host with no
+    // Firebase of its own (e.g. this library's standalone sample app).
+    public static void initializeFirebase(Context context, String apiKey, String client_id, String api_key) {
         try {
-            FirebaseOptions firebaseOptions =new FirebaseOptions.Builder()
-                    .setApplicationId("1:992052778259:android:490847258e7d584274f6e6")
-                    .setApiKey(apiKey)
-                    .setProjectId("itsomni-notification")
-                    .setGcmSenderId("992052778259")
-                    .build();
+            if (FirebaseApp.getApps(context).isEmpty()) {
+                FirebaseOptions firebaseOptions = new FirebaseOptions.Builder()
+                        .setApplicationId("1:992052778259:android:490847258e7d584274f6e6")
+                        .setApiKey(apiKey)
+                        .setProjectId("itsomni-notification")
+                        .setGcmSenderId("992052778259")
+                        .build();
+                FirebaseApp.initializeApp(context, firebaseOptions);
+            }
 
-
-                    try {
-                        FirebaseApp.initializeApp(context, firebaseOptions);
-                        String fingerprint = UUID.randomUUID().toString();
-                        new Prefs(context).saveFingerPrint(fingerprint);
-                        getFcmToken(context, client_id, api_key);
-                    }
-                    catch (Exception ex){
-                        Log.e(TAG, "initializeFirebase: "+ex.getMessage() );
-                    }
-
-
-
-
+            String fingerprint = UUID.randomUUID().toString();
+            new Prefs(context).saveFingerPrint(fingerprint);
+            getFcmToken(context, client_id, api_key);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "initializeFirebase: " + e.getMessage());
         }
-
     }
 
     private static final String TAG = "LibraryTAG";
 
-    public static void getFcmToken(Context ctx, String client_id,String api_key) {
-        FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(result ->{
+    public static void getFcmToken(Context ctx, String client_id, String api_key) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.e(TAG, "Fetching FCM token failed", task.getException());
+                        return;
+                    }
 
-            if (result.isSuccessful()) {
-                // Authentication was successful
-                Log.d(TAG, "Anonymous sign-in successful");
+                    String token = task.getResult();
+                    String packageName = ctx.getPackageName();
 
-                // Retrieve the current user
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                if (user != null) {
-                    FirebaseMessaging.getInstance().getToken()
-                            .addOnCompleteListener(task -> {
-                                if (!task.isSuccessful()) {
-                                    Log.e(TAG, "Fetching FCM token failed", task.getException());
-                                    return;
-                                }
-
-                                // Get the FCM token
-                                String token = task.getResult();
-                                String packageName = ctx.getPackageName();
-
-                                initSDKCall(ctx,token,packageName,client_id,api_key);
-                            });
-                }
-            } else {
-                // If sign-in fails, log the error
-                Log.e(TAG, "Anonymous sign-in failed", result.getException());
-            }
-        });
-
+                    initSDKCall(ctx, token, packageName, client_id, api_key);
+                });
     }
 
 
