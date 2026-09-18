@@ -1,34 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp"
+    android:gravity="center"
+    android:background="@color/bgColor"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
 
-    <include layout="@layout/notification_icon_with_badge" />
 
+<!--    <include layout="@layout/notification_icon_with_badge" />-->
 
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ITS FCM Application"
+        android:textSize="36sp"
+        android:textAlignment="center"
+        android:id="@+id/titleText"
+        android:textStyle="bold"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/textColor"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_horizontal"
+            android:padding="24dp">
     <EditText
-        android:layout_margin="20dp"
-        android:layout_marginTop="50dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/edtPhone"
-        android:hint="Phone"
-        />
-
-    <Button
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Register"
-        android:id="@+id/btnRegister"
-        android:layout_margin="20dp"
-
+        android:layout_height="55dp"
+        android:background="@drawable/custom_edittext"
+        android:drawablePadding="8dp"
+        android:hint="Phone Number"
+        android:paddingLeft="20dp"
+        android:textColor="@color/black"
+        android:textColorHighlight="@color/cardview_dark_background"
+        android:layout_marginTop="20dp"
         />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enter your number starting with 03. For example, if your number is 03001234567, enter it exactly in that format — no country code or spaces needed."
+                android:id="@+id/fieldDetails"
+                android:textSize="12sp"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/lightText"/>
 
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="25dp">
+
+                <!-- Actual Button -->
+                <Button
+                    android:id="@+id/btnRegister"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="REGISTER"
+                    android:textSize="18sp"
+                    android:backgroundTint="@color/yellow"
+                    android:enabled="true"
+                    android:textColor="@android:color/white"
+                    android:gravity="center"
+                    />
+
+                <!-- Loader (Initially hidden) -->
+                <ProgressBar
+                    android:id="@+id/progressInsideButton"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:background="@color/yellow"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+
+        </LinearLayout>
 </LinearLayout>

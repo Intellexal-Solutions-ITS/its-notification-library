@@ -26,6 +26,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
 
 
@@ -50,25 +55,6 @@ android.libraryVariants.all {
     it.unitTestVariant.addJavaSourceFoldersToModel(aptOutputDir)
 }
 
-task sourceJar(type: Jar) {
-    from android.sourceSets.main.jniLibs.srcDirs
-    archiveClassifier = "sources"
-}
-
-
-
-
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set("sources")
-    from android.sourceSets.main.java.sourceFiles
-}
-
-
-//tasks.named("publishMavenPublicationToMavenLocal") {
-//    mustRunAfter tasks.named("bundleReleaseAar")
-//}
-
-
     publishing {
         publications {
             maven(MavenPublication) {
@@ -80,11 +66,7 @@ task androidSourcesJar(type: Jar) {
                 version = '1.0.5'
 
                 afterEvaluate {
-                    from components.findByName("default") // Use "default" instead of "release"
-
-                    // Add sources and Javadoc if needed
-                    artifact("$buildDir/outputs/aar/mylibrary-release.aar")
-                    // Ensure you're pointing to the correct AAR file
+                    from components.release
                 }
                 pom {
                     name = 'ITS Notification Library'
@@ -110,9 +92,4 @@ task androidSourcesJar(type: Jar) {
 //        }
     }
 }
-
-tasks.named("publishMavenPublicationToMavenLocal") {
-    mustRunAfter tasks.named("bundleReleaseAar")
-}
-
 

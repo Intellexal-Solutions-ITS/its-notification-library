@@ -1,5 +1,7 @@
 package com.fe.sdkparentapp;
 
+import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +33,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             super(itemView);
             title = itemView.findViewById(R.id.title);
             message = itemView.findViewById(R.id.message);
-            status = itemView.findViewById(R.id.status);
+//            status = itemView.findViewById(R.id.status);
             dattime = itemView.findViewById(R.id.dattime);
 
         }
@@ -54,14 +56,23 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationEntity notification = notifications.get(position);
         holder.title.setText(notification.title);
         holder.message.setText(notification.message);
-        holder.status.setText(notification.status);
+//        holder.status.setText(notification.status);
         String formattedDate = new SimpleDateFormat("MMM dd, yyyy - hh:mm:ss a", Locale.getDefault())
                 .format(new Date(notification.datetime));
         holder.dattime.setText(formattedDate);
 
+//        holder.itemView.setOnClickListener(v -> {
+//            if (listener != null) {
+//                listener.onItemClick(notification);
+//            }
+//        });
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onItemClick(notification);
+            int adapterPosition = holder.getAdapterPosition();
+            if (listener != null && adapterPosition != RecyclerView.NO_POSITION) {
+                Log.d("NotificationAdapter", "Clicked item position: " + adapterPosition);
+                listener.onItemClick(notifications.get(adapterPosition));
+            } else {
+                Log.d("NotificationAdapter", "Listener null or invalid position");
             }
         });
     }
@@ -70,4 +81,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public int getItemCount() {
         return notifications.size();
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateData(List<NotificationEntity> newList) {
+        this.notifications.clear();
+        this.notifications.addAll(newList);
+        notifyDataSetChanged();
+    }
+
 }

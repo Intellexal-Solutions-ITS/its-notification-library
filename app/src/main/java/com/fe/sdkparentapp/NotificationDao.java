@@ -15,4 +15,14 @@ public interface NotificationDao {
 
     @Query("SELECT * FROM notifications")
     List<NotificationEntity> getAllNotifications();
+
+    @Query("SELECT * FROM notifications WHERE notification_id = :transactionId")
+    NotificationEntity getNotificationById(String transactionId);
+
+    @Query("UPDATE notifications SET status = :status WHERE notification_id = :notificationId")
+    void updateStatus(String notificationId, String status);
+
+    @Query("DELETE FROM notifications")
+    void clearAllNotifications();
+
 }
