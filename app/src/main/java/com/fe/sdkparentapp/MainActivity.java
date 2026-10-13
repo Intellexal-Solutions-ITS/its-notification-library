@@ -51,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (SessionManager.isLoggedIn(this)) {
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.putExtras(getIntent());
+            intent.putExtra("phone", SessionManager.getPhone(this));
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -63,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 "REDACTED_FIREBASE_WEB_API_KEY",
                 "REDACTED_CLIENT_ID".toLowerCase(),
                 "REDACTED_API_KEY");
+
         requestNotificationPermission();
         progressInsideButton = findViewById(R.id.progressInsideButton);
         edtPhone = findViewById(R.id.edtPhone);
@@ -93,8 +104,10 @@ public class MainActivity extends AppCompatActivity {
                             btnRegister.setText("Register");
                             btnRegister.setEnabled(true);
                             // Continue registration
-                            NotificationModule.registerUser(MainActivity.this, phone, null, null);
+                            NotificationModule.registerUser(MainActivity.this, phone, "Sumair", "sumair.yaseen@its.com.pk");
+                            SessionManager.saveSession(MainActivity.this, phone);
                             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                            intent.putExtras(getIntent());
                             intent.putExtra("phone", phone); // Pass phone number
                             startActivity(intent);
                             edtPhone.setText("");

@@ -13,79 +13,86 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.its.notificationlibrary.Model.NotificationModel;
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONObject;
 
-import java.util.Map;
 import java.util.Random;
 
-/**
- * Plain callable handler for an ITS-originated FCM message — NOT a
- * FirebaseMessagingService. A host app that already owns its own FCM
- * receiving (e.g. via the firebase_messaging Flutter plugin) keeps that
- * ownership; call {@link #handleRemoteMessage} from that existing pipeline
- * once you've identified the message as ITS-originated (e.g. presence of
- * a "transaction_id" key in the data payload).
- */
-public class NotificationHandler {
+public class NotificationHandler extends FirebaseMessagingService {
     private static final String TAG = "FCMService";
     private static final String CHANNEL_ID = "ITSNotificationService";
 
-    public static void handleRemoteMessage(Context context, String title, String message, Map<String, String> data) {
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        super.onMessageReceived(remoteMessage);
+        Context context = getApplicationContext();
+
+        String title = "";
+        String message = "";
         JSONObject payloadJson = new JSONObject();
-        try {
-            for (Map.Entry<String, String> entry : data.entrySet()) {
-                payloadJson.put(entry.getKey(), entry.getValue());
+
+        if (remoteMessage.getNotification() != null) {
+            title = remoteMessage.getNotification().getTitle();
+            message = remoteMessage.getNotification().getBody();
+
+            if (!remoteMessage.getData().isEmpty()) {
+                try {
+                    for (String key : remoteMessage.getData().keySet()) {
+                        payloadJson.put(key, remoteMessage.getData().get(key));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        NotificationListener listener = NotificationHandlerRegistry.getListener();
-        if (listener != null) {
-            NotificationModel myNotification = new NotificationModel(title, message, payloadJson);
-            listener.onNotificationReceived(myNotification);
-        }
+            NotificationListener listener = NotificationHandlerRegistry.getListener();
+            if (listener != null) {
+                NotificationModel myNotification = new NotificationModel(title, message, payloadJson);
+                listener.onNotificationReceived(myNotification);
+            }
 
-        Intent broadcast = new Intent("com.its.notificationlibrary.NOTIFICATION_RECEIVED");
-        broadcast.putExtra("title", title);
-        broadcast.putExtra("body", message);
-        context.sendBroadcast(broadcast);
+            Intent i = new Intent("com.its.notificationlibrary.NOTIFICATION_RECEIVED");
+            i.putExtra("title", title);
+            i.putExtra("body", message);
+            sendBroadcast(i);
 
-        Intent launchIntent = context.getPackageManager()
-                .getLaunchIntentForPackage(context.getPackageName());
+            Intent intent = context.getPackageManager()
+                    .getLaunchIntentForPackage(context.getPackageName());
 
-        PendingIntent pendingIntent = null;
-        if (launchIntent != null) {
-            launchIntent.putExtra("id", data.get("transaction_id"));
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            PendingIntent pendingIntent = null;
+            if (intent != null) {
+                intent.putExtra("id", remoteMessage.getData().get("transaction_id"));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            pendingIntent = PendingIntent.getActivity(
-                    context,
-                    0,
-                    launchIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-            );
-        } else {
-            Log.d(TAG, "No launch intent found for package, notification will not be tappable");
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelName = "ITS Notification Service";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, channelName, importance);
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager != null) {
-                notificationManager.createNotificationChannel(channel);
+                pendingIntent = PendingIntent.getActivity(
+                        context,
+                        0,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                );
             } else {
-                Log.d(TAG, "Notification Manager is null: ");
+                Log.d(TAG, "No launch intent found for package, notification will not be tappable");
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelName = "ITS Notification Service";
+                int importance = NotificationManager.IMPORTANCE_DEFAULT;
+                NotificationChannel channel = new NotificationChannel(CHANNEL_ID, channelName, importance);
+                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                if (notificationManager != null) {
+                    notificationManager.createNotificationChannel(channel);
+                } else {
+                    Log.d(TAG, "Notification Manager is null: ");
+                }
+            }
+
+            showNotification(title, message, pendingIntent);
         }
 
-        showNotification(context, title, message, pendingIntent);
-
-        NotificationUtil.updateNotificationStatus(context, "delivered", data.get("client_id"),
-                data.get("transaction_id"), new NotificationStatusCallback() {
+        NotificationUtil.updateNotificationStatus(this, "delivered", remoteMessage.getData().get("client_id"),
+                remoteMessage.getData().get("transaction_id"), new NotificationStatusCallback() {
             @Override
             public void onSuccess(String response) {
                 Log.d("ViewNotification", "Status update successful");
@@ -99,11 +106,11 @@ public class NotificationHandler {
     }
 
     @SuppressLint("MissingPermission")
-    private static void showNotification(Context context, String title, String message, PendingIntent pendingIntent) {
-        String updatedMessage = isUrdu(message) ? "\u200F" + message : message;
+    private void showNotification(String title, String message, PendingIntent pendingIntent) {
+        String updatedMessage = isUrdu(message) ? "‏" + message : message;
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(context.getApplicationInfo().icon)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(getApplicationInfo().icon)
                 .setContentTitle(title)
                 .setContentText(updatedMessage)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
@@ -112,7 +119,7 @@ public class NotificationHandler {
                 .setAutoCancel(true);
         Random random = new Random();
         int number = 100000 + random.nextInt(900000);
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         notificationManager.notify(number, builder.build());
     }
 
@@ -126,5 +133,11 @@ public class NotificationHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public void onNewToken(String token) {
+        super.onNewToken(token);
+        Log.d(TAG, "FCM token refreshed");
     }
 }

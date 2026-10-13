@@ -1,12 +1,15 @@
 package com.fe.sdkparentapp;
 
 import android.annotation.SuppressLint;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
@@ -27,15 +30,17 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title, message, status,dattime;
+        CardView card;
+        TextView title, message, dattime;
+        View unreadDot;
 
         public ViewHolder(View itemView) {
             super(itemView);
+            card = (CardView) itemView;
             title = itemView.findViewById(R.id.title);
             message = itemView.findViewById(R.id.message);
-//            status = itemView.findViewById(R.id.status);
             dattime = itemView.findViewById(R.id.dattime);
-
+            unreadDot = itemView.findViewById(R.id.unreadDot);
         }
     }
 
@@ -56,16 +61,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationEntity notification = notifications.get(position);
         holder.title.setText(notification.title);
         holder.message.setText(notification.message);
-//        holder.status.setText(notification.status);
         String formattedDate = new SimpleDateFormat("MMM dd, yyyy - hh:mm:ss a", Locale.getDefault())
                 .format(new Date(notification.datetime));
         holder.dattime.setText(formattedDate);
 
-//        holder.itemView.setOnClickListener(v -> {
-//            if (listener != null) {
-//                listener.onItemClick(notification);
-//            }
-//        });
+        boolean isRead = notification.status != null && notification.status.equalsIgnoreCase("read");
+        holder.title.setTypeface(null, isRead ? Typeface.NORMAL : Typeface.BOLD);
+        holder.unreadDot.setVisibility(isRead ? View.GONE : View.VISIBLE);
+        holder.card.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(),
+                isRead ? android.R.color.white : R.color.unreadBg));
+
         holder.itemView.setOnClickListener(v -> {
             int adapterPosition = holder.getAdapterPosition();
             if (listener != null && adapterPosition != RecyclerView.NO_POSITION) {

@@ -2,10 +2,7 @@ package com.fe.sdkparentapp;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,7 +11,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.room.Room;
 
 import com.its.notificationlibrary.Notifications.NotificationHandlerRegistry;
@@ -34,15 +30,6 @@ public class HomeActivity extends AppCompatActivity {
     AppDatabase db;
 
     ImageView logoutIcon;
-
-
-    private final BroadcastReceiver badgeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int count = intent.getIntExtra("count", 0);
-            updateBadgeCount(count);
-        }
-    };
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -66,28 +53,21 @@ public class HomeActivity extends AppCompatActivity {
 
         // Bell icon click opens NotificationActivity
 
-        notification_container.setOnClickListener(v -> {
-            NotificationCounter.reset();
-            startActivity(new Intent(HomeActivity.this, NotificationActivity.class));
-        });
+        notification_container.setOnClickListener(v ->
+                startActivity(new Intent(HomeActivity.this, NotificationActivity.class)));
 
-        // Show existing badge count
-        updateBadgeCount(NotificationCounter.getCount());
-
-
-
-        NotificationModule.handleNotificationIntent(getIntent());
-
-
-
-
-        // 🔔 Handle notification click
+        // 🔔 Handle notification click — must be registered before handleNotificationIntent,
+        // otherwise a cold-start tap finds the listener still null and silently drops.
         NotificationModule.setNotificationClickListener(id -> {
 
-            Log.e("CLICK NOTIFICATION", "onCreate: ");
+            Log.d("NotificationClick", "Notification tapped, id: " + id);
 
             new Thread(() -> {
                 NotificationEntity notification = db.notificationDao().getNotificationById(id);
+                if (notification == null) {
+                    Log.e("NotificationClick", "No local notification found for id: " + id);
+                    return;
+                }
                 try {
                     JSONObject jo = new JSONObject(notification.payload);
 
@@ -99,23 +79,23 @@ public class HomeActivity extends AppCompatActivity {
                     String formattedDate = new SimpleDateFormat("MMM dd, yyyy - hh:mm:ss a", Locale.getDefault())
                             .format(new Date(notification.datetime));
 
-                    // Switch to UI thread to start the activity
-//                    runOnUiThread(() -> {
-                        Intent i = new Intent(HomeActivity.this, ViewNotificationActivity.class);
-                        i.putExtra("client_id", clientId);
-                        i.putExtra("transaction_id", transactionId);
-                        i.putExtra("title", title);
-                        i.putExtra("message", message);
-                        i.putExtra("datetime", formattedDate);
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        Log.d("NotificationClick", "Opening ViewNotificationActivity for: " + transactionId);
-                        startActivity(i);
-//                    });
+                    Intent i = new Intent(HomeActivity.this, ViewNotificationActivity.class);
+                    i.putExtra("client_id", clientId);
+                    i.putExtra("transaction_id", transactionId);
+                    i.putExtra("title", title);
+                    i.putExtra("message", message);
+                    i.putExtra("datetime", formattedDate);
+                    i.putExtra("status", notification.status);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Log.d("NotificationClick", "Opening ViewNotificationActivity for: " + transactionId);
+                    startActivity(i);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }).start();
         });
+
+        NotificationModule.handleNotificationIntent(getIntent());
 
 
         // 🔔 Handle notification received
@@ -136,27 +116,18 @@ public class HomeActivity extends AppCompatActivity {
                 throw new RuntimeException(e);
             }
 
-            new Thread(() -> db.notificationDao().insertNotification(notification)).start();
-            NotificationCounter.increment();
-
-            // Send badge update
-            Intent intent = new Intent("com.fe.sdkparentapp");
-            intent.putExtra("count", NotificationCounter.getCount());
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-
-
-
+            new Thread(() -> {
+                db.notificationDao().insertNotification(notification);
+                int count = db.notificationDao().getUnreadCount();
+                runOnUiThread(() -> updateBadgeCount(count));
+            }).start();
         });
-
-        // 🔄 Listen for badge count updates
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                badgeReceiver, new IntentFilter("com.fe.sdkparentapp")
-        );
 
         logoutIcon.setOnClickListener(v -> {
             new Thread(() -> {
                 // Clear your Room database
                 db.notificationDao().clearAllNotifications();
+                SessionManager.clearSession(HomeActivity.this);
 
                 runOnUiThread(() -> {
                     Intent intent = new Intent(HomeActivity.this, MainActivity.class);
@@ -178,9 +149,16 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    private void refreshBadgeCount() {
+        new Thread(() -> {
+            int count = db.notificationDao().getUnreadCount();
+            runOnUiThread(() -> updateBadgeCount(count));
+        }).start();
+    }
+
     @Override
-    protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(badgeReceiver);
-        super.onDestroy();
+    protected void onResume() {
+        super.onResume();
+        refreshBadgeCount();
     }
 }

@@ -26,7 +26,6 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -86,7 +85,6 @@ public class NotificationActivity extends AppCompatActivity {
                     }
 
                     List<NotificationEntity> updatedList = db.notificationDao().getAllNotifications();
-                    Collections.reverse(updatedList);
 
                     runOnUiThread(() -> {
                         adapter = new NotificationAdapter(updatedList);
@@ -180,10 +178,9 @@ public class NotificationActivity extends AppCompatActivity {
     private void refreshNotifications() {
         new Thread(() -> {
             List<NotificationEntity> updatedList = db.notificationDao().getAllNotifications();
-            Collections.reverse(updatedList);
 
             runOnUiThread(() -> {
-                adapter.updateData(updatedList); // You’ll need to implement this in adapter
+                adapter.updateData(updatedList);
             });
         }).start();
     }
