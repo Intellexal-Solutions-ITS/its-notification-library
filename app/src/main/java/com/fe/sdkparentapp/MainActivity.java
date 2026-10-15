@@ -70,9 +70,9 @@ public class MainActivity extends AppCompatActivity {
         });
         NotificationModule.initializeFirebase(
                 this,
-                "REDACTED_FIREBASE_WEB_API_KEY",
-                "REDACTED_CLIENT_ID".toLowerCase(),
-                "REDACTED_API_KEY");
+                BuildConfig.FIREBASE_WEB_API_KEY,
+                BuildConfig.ITS_CLIENT_ID.toLowerCase(),
+                BuildConfig.ITS_API_KEY);
 
         requestNotificationPermission();
         progressInsideButton = findViewById(R.id.progressInsideButton);

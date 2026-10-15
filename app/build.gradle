@@ -1,5 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Secrets live in local.properties (gitignored), never in source. Each is
+// required — the build fails loudly instead of silently shipping an empty key.
+def localProps = new Properties()
+file("$rootDir/local.properties").withInputStream { localProps.load(it) }
+def requireLocalProp = { String key ->
+    def value = localProps.getProperty(key)
+    if (value == null || value.isEmpty() || value == "REPLACE_ME") {
+        throw new GradleException("Missing or placeholder '$key' in local.properties. See local.properties.example.")
+    }
+    return value
 }
 
 android {
@@ -14,6 +28,14 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "FIREBASE_WEB_API_KEY", "\"${requireLocalProp('FIREBASE_WEB_API_KEY')}\""
+        buildConfigField "String", "ITS_CLIENT_ID", "\"${requireLocalProp('ITS_CLIENT_ID')}\""
+        buildConfigField "String", "ITS_API_KEY", "\"${requireLocalProp('ITS_API_KEY')}\""
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     buildTypes {
@@ -43,7 +65,7 @@ dependencies {
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
 
-    implementation project(':mylibrary')
+    implementation 'com.github.Intellexal-Solutions-ITS:its-notification-library:1.0.10'
 
 }
 

@@ -1,0 +1,10 @@
+# Copy this file to local.properties (gitignored) and fill in real values.
+# Never commit local.properties or put real secrets in this .example file.
+
+sdk.dir=/path/to/your/Android/sdk
+
+# sdkparentapp's Firebase Web API key and ITS backend tenant credentials.
+# Ask the ITS backend team for these.
+FIREBASE_WEB_API_KEY=
+ITS_CLIENT_ID=
+ITS_API_KEY=
