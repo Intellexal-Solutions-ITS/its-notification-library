@@ -5,16 +5,31 @@ plugins {
 }
 
 // Secrets live in local.properties (gitignored), never in source. Each is
-// required — the build fails loudly instead of silently shipping an empty key.
+// required to actually build this app — but the check must not run during
+// Gradle's configuration phase, since that runs for every module in the
+// multi-project build (e.g. when JitPack only wants to build :mylibrary and
+// has no local.properties at all). Instead we resolve to a placeholder here
+// and only fail loudly from checkRequiredSecrets, which real app build tasks
+// depend on.
+def localPropsFile = file("$rootDir/local.properties")
 def localProps = new Properties()
-file("$rootDir/local.properties").withInputStream { localProps.load(it) }
-def requireLocalProp = { String key ->
-    def value = localProps.getProperty(key)
-    if (value == null || value.isEmpty() || value == "REPLACE_ME") {
-        throw new GradleException("Missing or placeholder '$key' in local.properties. See local.properties.example.")
-    }
-    return value
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
 }
+def getLocalProp = { String key -> localProps.getProperty(key, "REPLACE_ME") }
+
+tasks.register("checkRequiredSecrets") {
+    doLast {
+        ["FIREBASE_WEB_API_KEY", "ITS_CLIENT_ID", "ITS_API_KEY"].each { key ->
+            def value = localProps.getProperty(key)
+            if (value == null || value.isEmpty() || value == "REPLACE_ME") {
+                throw new GradleException("Missing or placeholder '$key' in local.properties. See local.properties.example.")
+            }
+        }
+    }
+}
+tasks.matching { it.name.startsWith("assemble") || it.name.startsWith("compile") || it.name.startsWith("bundle") || it.name.startsWith("install") }
+        .configureEach { dependsOn "checkRequiredSecrets" }
 
 android {
     namespace 'com.fe.sdkparentapp'
@@ -29,9 +44,9 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "FIREBASE_WEB_API_KEY", "\"${requireLocalProp('FIREBASE_WEB_API_KEY')}\""
-        buildConfigField "String", "ITS_CLIENT_ID", "\"${requireLocalProp('ITS_CLIENT_ID')}\""
-        buildConfigField "String", "ITS_API_KEY", "\"${requireLocalProp('ITS_API_KEY')}\""
+        buildConfigField "String", "FIREBASE_WEB_API_KEY", "\"${getLocalProp('FIREBASE_WEB_API_KEY')}\""
+        buildConfigField "String", "ITS_CLIENT_ID", "\"${getLocalProp('ITS_CLIENT_ID')}\""
+        buildConfigField "String", "ITS_API_KEY", "\"${getLocalProp('ITS_API_KEY')}\""
     }
 
     buildFeatures {
